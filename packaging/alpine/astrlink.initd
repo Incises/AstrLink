@@ -1,0 +1,21 @@
+#!/sbin/openrc-run
+
+description="AstrLink API gateway and web console"
+command="/usr/bin/astrlink-core"
+command_args="serve"
+command_user="astrlink:astrlink"
+command_background="yes"
+pidfile="/run/astrlink.pid"
+
+export ASTRLINK_DATA_DIR="${ASTRLINK_DATA_DIR:-/var/lib/astrlink}"
+export ASTRLINK_LISTEN="${ASTRLINK_LISTEN:-127.0.0.1:8317}"
+export ASTRLINK_ONNX_RUNTIME_PATH="${ASTRLINK_ONNX_RUNTIME_PATH:-/usr/lib/libonnxruntime.so.1}"
+export HOME="$ASTRLINK_DATA_DIR"
+
+depend() {
+	need net
+}
+
+start_pre() {
+	checkpath --directory --mode 0700 --owner "$command_user" "$ASTRLINK_DATA_DIR"
+}

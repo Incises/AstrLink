@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+grep -q '^astrlink:' /etc/group || addgroup -S astrlink
+id astrlink >/dev/null 2>&1 || adduser -S -D -H -G astrlink -h /var/lib/astrlink -s /sbin/nologin astrlink

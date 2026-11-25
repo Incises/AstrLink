@@ -1,0 +1,3 @@
+# Core serves the Web UI and inference API on the same listener.
+ASTRLINK_LISTEN="127.0.0.1:8317"
+ASTRLINK_DATA_DIR="/var/lib/astrlink"

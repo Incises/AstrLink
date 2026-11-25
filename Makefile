@@ -1,6 +1,6 @@
 BUN ?= bun
 
-.PHONY: check core-check core-race convo-check convo-race contracts-check contracts-race desktop-install desktop-check desktop-sidecar desktop-go-check privacy-worker-check classifier-worker-check classifier-ort-gate classifier-bench model-safety-check desktop-toolchain dev start
+.PHONY: check core-check core-race convo-check convo-race contracts-check contracts-race frontend-install desktop-install desktop-check desktop-sidecar desktop-go-check privacy-worker-check classifier-worker-check classifier-ort-gate classifier-bench model-safety-check desktop-toolchain dev start
 
 check: model-safety-check convo-check core-check contracts-check desktop-check privacy-worker-check classifier-worker-check desktop-go-check
 
@@ -30,7 +30,9 @@ contracts-check:
 contracts-race:
 	cd contracts && go test -race -count=1 ./...
 
-desktop-install:
+desktop-install: frontend-install
+
+frontend-install:
 	cd apps/desktop && $(BUN) install --frozen-lockfile
 
 desktop-check:
@@ -92,8 +94,21 @@ dev: desktop-install desktop-toolchain
 start: desktop-install desktop-toolchain
 	cd apps/desktop && $(BUN) run desktop:start
 
-.PHONY: web
-web:
+.PHONY: web web-assets
+
+web-assets: frontend-install
 	cd apps/desktop && $(BUN) run build:web
 	$(BUN) apps/desktop/scripts/stage-web.mjs
+
+# Cross builds depend on web-assets directly to skip building Core for the host.
+web: web-assets
 	cd core && go build -tags webui -o bin/astrlink-core ./cmd/astrlink-core
+
+.PHONY: alpine
+export ALPINE_ARCH
+
+# Build the gateway, Web UI, CLI and privacy worker for Alpine.
+# Use ALPINE_ARCH=aarch64 for ARM64. Cross builds need Rust's musl target and musl GCC.
+alpine: web-assets
+	sh packaging/alpine/build.sh worker
+	sh packaging/alpine/build.sh gateway
