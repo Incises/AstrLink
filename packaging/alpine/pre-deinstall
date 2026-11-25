@@ -1,0 +1,4 @@
+#!/bin/sh
+if rc-service astrlink --quiet status; then
+	rc-service astrlink stop || exit 1
+fi
